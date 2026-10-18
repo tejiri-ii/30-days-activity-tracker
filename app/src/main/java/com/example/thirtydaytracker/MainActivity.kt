@@ -10,6 +10,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.widget.*
@@ -28,6 +30,22 @@ class MainActivity : ComponentActivity() {
     private var startDate: Long = 0L
     private lateinit var root: LinearLayout
     private lateinit var dateLabel: TextView
+    private lateinit var clockLabel: TextView
+
+private val clockHandler = Handler(Looper.getMainLooper())
+
+private val clockUpdater = object : Runnable {
+    override fun run() {
+        if (::clockLabel.isInitialized) {
+            clockLabel.text = SimpleDateFormat(
+                "hh:mm:ss a",
+                Locale.getDefault()
+            ).format(Date())
+        }
+
+        clockHandler.postDelayed(this, 1000)
+    }
+}
     private lateinit var progressLabel: TextView
     private lateinit var list: LinearLayout
     private val dateFormat = SimpleDateFormat("EEE, d MMM yyyy", Locale.getDefault())
@@ -101,6 +119,14 @@ class MainActivity : ComponentActivity() {
             text = "30-Day Tracker"; textSize = 27f
             setTextColor(0xFF222222.toInt())
         })
+        clockLabel = TextView(this).apply {
+    textSize = 30f
+    setTextColor(0xFF1565C0.toInt())
+    setPadding(0, 12, 0, 12)
+    gravity = Gravity.CENTER
+}
+
+root.addView(clockLabel)
         dateLabel = TextView(this).apply { textSize = 14f; setTextColor(0xFF666666.toInt()) }
         root.addView(dateLabel)
         root.addView(button("Choose start date") { chooseStartDate() })
@@ -239,6 +265,18 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+override fun onResume() {
+    super.onResume()
+    if (::clockLabel.isInitialized) {
+        clockHandler.removeCallbacks(clockUpdater)
+        clockUpdater.run()
+    }
+}
+
+override fun onPause() {
+    clockHandler.removeCallbacks(clockUpdater)
+    super.onPause()
+}
 private object AlertDialogCompat {
     fun show(context: Context, title: String, view: View, positive: String, action: () -> Unit) {
         android.app.AlertDialog.Builder(context).setTitle(title).setView(view)
