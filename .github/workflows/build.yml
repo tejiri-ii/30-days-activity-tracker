@@ -23,16 +23,7 @@ jobs:
           packages: 'platform-tools'
 
       - name: Build APK
-        run: |
-          if [ -f gradlew ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug
-          elif [ -f build.gradle ]; then
-            gradle assembleDebug
-          else
-            echo "Android Gradle project not detected."
-            exit 1
-          fi
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
